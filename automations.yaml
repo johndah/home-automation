@@ -1,0 +1,230 @@
+
+- id: smooth_wake_up
+  alias: 'Smooth Wake Up'
+  initial_state: true
+  trigger:
+    - platform: template
+      value_template: >-
+        {% set alarm_time = states('sensor.sm_g991b_next_alarm') %}
+        {% if alarm_time not in  ['unavailable', 'none', 'unknown'] %} 
+        {{ now() >= alarm_time | as_datetime | as_local - 
+          timedelta(minutes=(states.input_number.wake_up_transition_time.state | int)) }}
+        {% endif %}
+  condition:
+    - condition: time
+      after: input_datetime.morning_time
+      before: '13:00:00'
+    - condition: state
+      entity_id: input_boolean.sleep_mode
+      state: 'on'
+  action:
+    - service: script.wake_up
+      data:
+        transition: "{{ (states.input_number.wake_up_transition_time.state | int) }}"
+    - delay:
+        minutes: "{{ (states.input_number.open_covers_delay.state | int) }}"
+    - service: automation.trigger
+      target:
+        entity_id: automation.morning_mode
+
+- id: morning_mode
+  alias: 'Morning Mode'
+  initial_state: true
+  trigger:
+    platform: numeric_state
+    entity_id: sensor.bluetooth
+    above: 50
+  condition:
+    - condition: time
+      after: input_datetime.morning_time
+      before: '13:00:00'
+    - condition: state
+      entity_id: input_boolean.sleep_mode
+      state: 'on'
+  variables:
+    is_summer: "{{ is_state('sensor.season', 'summer') }}"
+  action:
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.sleep_mode
+    - service: script.open_covers
+    - choose:
+      - conditions: "{{ is_summer and is_state('sun.sun', 'above_horizon') }}"
+        sequence:
+          service: light.turn_off
+          target:
+            entity_id: all
+      default:
+        service: light.turn_on
+        target:
+          entity_id: all
+
+- id: reset_night_mode
+  alias: 'Reset Night Mode'
+  initial_state: true
+  trigger:
+    - platform: time
+      at: '14:00:00'
+  condition:
+      condition: or
+      conditions:
+        - condition: state
+          entity_id: input_boolean.sleep_mode
+          state: 'on'
+  action:
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.sleep_mode
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.night_mode
+
+- id: evening_mode
+  alias: 'Evening Mode'
+  initial_state: true
+  trigger:
+    platform: time
+    at: input_datetime.evening_time
+  condition:
+    - condition: numeric_state
+      entity_id: sensor.bluetooth
+      above: 50
+  action:
+    - service: 
+        script.turn_on_lights_evening
+
+- id: night_mode
+  alias: 'Night Mode'
+  initial_state: true
+  trigger:
+    - platform: time
+      at: input_datetime.night_time
+  condition:
+    - condition: numeric_state
+      entity_id: sensor.bluetooth
+      above: 50
+    - condition: state
+      entity_id: input_boolean.sleep_mode
+      state: 'off'
+  action:
+    service: 
+      script.turn_on_lights_night
+
+- id: hall_motion_sensor_off
+  alias: Hall Motion Sensor Off
+  description: 'Delayed turning off hall lights after motion sensor previously has been triggered'
+  variables:
+    current_timestamp: "{{ as_timestamp(now()) - as_timestamp(now().date()) }}"
+    evening_timestamp: "{{ states.input_datetime.evening_time.attributes.timestamp }}"
+    night_timestamp: "{{ states.input_datetime.night_time.attributes.timestamp }}"
+    is_evening: "{{ evening_timestamp <= current_timestamp < night_timestamp }}"
+  trigger:
+    entity_id: light.closet
+    platform: state
+    to: 'off'
+  action:
+    - choose:
+      - conditions: "{{ not is_evening }}"
+        sequence:
+          service: light.turn_off
+          target:
+            entity_id: light.hall_ceiling
+
+- id: hall_motion_sensor_on
+  alias: Hall Motion Sensor On
+  description: 'Turn on lights in hall when motion sensor is triggered'
+  variables:
+    current_timestamp: "{{ as_timestamp(now()) - as_timestamp(now().date()) }}"
+    morning_timestamp: "{{ states.input_datetime.morning_time.attributes.timestamp }}"
+    evening_timestamp: "{{ states.input_datetime.evening_time.attributes.timestamp }}"
+    night_timestamp: "{{ states.input_datetime.night_time.attributes.timestamp }}"
+    is_daytime: "{{ morning_timestamp <= current_timestamp < evening_timestamp }}"
+    is_evening: "{{ evening_timestamp <= current_timestamp < night_timestamp }}"
+  trigger:
+    - platform: state
+      entity_id: light.closet
+      to: 'on'
+  action:
+    - choose:
+      - conditions: "{{ is_daytime or is_evening }}"
+        sequence:
+          service: light.turn_on
+          target:
+            entity_id: light.hall_ceiling
+
+- id: occupancy_on
+  alias: 'Occupancy On'
+  initial_state: true
+  variables:
+    current_timestamp: "{{ as_timestamp(now()) - as_timestamp(now().date()) }}"
+    morning_timestamp: "{{ states.input_datetime.morning_time.attributes.timestamp }}"
+    evening_timestamp: "{{ states.input_datetime.evening_time.attributes.timestamp }}"
+    night_timestamp: "{{ states.input_datetime.night_time.attributes.timestamp }}"
+    is_daytime: "{{ morning_timestamp <= current_timestamp < evening_timestamp }}"
+    is_evening: "{{ evening_timestamp <= current_timestamp < night_timestamp }}"
+    is_night: "{{ not ( is_daytime or is_evening ) }}"
+    is_summer: "{{ is_state('sensor.season', 'summer') }}"
+  trigger:
+    platform: numeric_state
+    entity_id: sensor.bluetooth
+    above: 50
+  condition:
+    condition: state
+    entity_id: input_boolean.sleep_mode
+    state: 'off'
+  action:
+    - choose:
+      - conditions: "{{ is_daytime }}"
+        sequence:
+          service: script.turn_on_lights
+      - conditions: "{{ is_evening }}"
+        sequence:
+          service: script.turn_on_lights_evening
+      - conditions: "{{ is_night }}"
+        sequence:
+          service: script.turn_on_lights_night
+    - choose:
+      - conditions: "{{ is_summer and not is_night }}"
+        sequence:
+          - service: script.open_covers_living_room
+    - service: media_player.turn_on
+      target:
+        entity_id: media_player.the_frame
+    - service: media_player.select_source
+      data:
+        source: raspotify (raspberrypi)
+      target:
+        device_id: !secret media_device
+        entity_id: media_player.spotify_john_dahlberg
+    - service: media_player.volume_set
+      target:
+        device_id: !secret media_device
+        entity_id: media_player.spotify_john_dahlberg
+      data:
+        volume_level: 1.0
+
+- id: occupancy_off
+  alias: 'Occupancy Off'
+  initial_state: true
+  variables:
+    current_timestamp: "{{ as_timestamp(now()) - as_timestamp(now().date()) }}"
+    morning_timestamp: "{{ states.input_datetime.morning_time.attributes.timestamp }}"
+    evening_timestamp: "{{ states.input_datetime.evening_time.attributes.timestamp }}"
+    is_sunny: "{{ is_state('weather.forecast_home', 'sunny' )}}"
+    is_daytime: "{{morning_timestamp <= current_timestamp < evening_timestamp }}"
+    is_summer: "{{ is_state('sensor.season', 'summer') }}"
+  trigger:
+    platform: numeric_state
+    entity_id: sensor.bluetooth
+    below: 50
+  action:
+    - service: light.turn_off
+      target:
+        entity_id: all
+    - service: media_player.turn_off
+      target:
+        entity_id: media_player.the_frame
+    - choose:
+      - conditions: "{{ is_summer and is_sunny and is_daytime }}"
+        sequence:
+          service: script.shade_mode

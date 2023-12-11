@@ -1,0 +1,251 @@
+
+open_covers_living_room:
+  sequence:
+  - service: cover.open_cover
+    data:
+      entity_id:
+        - cover.middle_blind
+        - cover.kitchen_blind
+  - delay:
+      seconds: >
+        {% if state_attr('cover.middle_blind','current_position') > 0 %} 2 {% else %} 4 {% endif %}
+  - service: cover.open_cover
+    target:
+      entity_id:
+        - cover.left_blind
+        - cover.right_blind
+
+open_covers:
+  sequence:
+  - service: cover.open_cover
+    target:
+      entity_id: cover.kitchen_blind
+  - service: script.open_covers_living_room
+
+close_covers:
+  sequence:
+  - service: cover.close_cover
+    target:
+      entity_id:
+        - cover.left_blind
+        - cover.middle_blind
+        - cover.right_blind
+        - cover.kitchen_blind
+
+shade_mode:
+  sequence:
+  - service: cover.set_cover_position
+    target:
+      entity_id:
+        - cover.left_blind
+        - cover.middle_blind
+        - cover.right_blind
+    data:
+      position: 50
+
+stop_covers:
+  sequence:
+  - service: cover.stop_cover
+    target:
+      entity_id:
+        - cover.left_blind
+        - cover.middle_blind
+        - cover.right_blind
+        - cover.kitchen_blind
+
+sleep:
+  sequence:
+  - service: script.close_covers
+  - service: input_boolean.turn_on
+    target:
+      entity_id: input_boolean.sleep_mode
+  - service: light.turn_off
+    entity_id: group.all_lights
+  - service: media_player.turn_off
+    target:
+      entity_id: media_player.the_frame
+  - service: media_player.select_source
+    data:
+      source: raspotify (raspberrypi)
+    target:
+      device_id: !secret media_device
+      entity_id: media_player.spotify_john_dahlberg
+  - service: media_player.volume_set
+    data:
+      volume_level: 0.6
+    target:
+      device_id: !secret media_device
+      entity_id: media_player.spotify_john_dahlberg
+  - service: media_player.play_media
+    data:
+      media_content_id: !secret sleep_playlist
+      media_content_type: playlist
+    target:
+      device_id: !secret media_device
+      entity_id: media_player.spotify_john_dahlberg
+  - service: media_player.shuffle_set
+    target:
+      device_id: !secret media_device
+      entity_id: media_player.spotify_john_dahlberg
+    data:
+      shuffle: true
+  - delay:
+      minutes: 45
+  - service: media_player.media_pause
+    target:
+      device_id: !secret media_device
+      entity_id: media_player.spotify_john_dahlberg
+  mode: single
+      
+pre_sleep:
+  sequence:
+  - service: input_boolean.turn_on
+    target:
+      entity_id: input_boolean.sleep_mode
+  - service: script.close_covers
+  - service: light.turn_off
+    target:
+      entity_id:
+        - group.hall
+        - light.top_of_bookshelf
+        - light.middle_of_bookshelf
+        - light.beneath_bookshelf
+        - light.middle_led
+        - light.top_led
+        - light.cactus
+        - light.citrus_tree
+        - light.right_of_tv
+        - light.left_of_tv
+        - light.sofa
+        - light.livingroom_ceiling
+  - service: light.turn_on
+    target:
+      entity_id:
+        - light.led_list
+        - light.bottom_led
+    data:
+      brightness: 10
+  - service: media_player.media_pause
+    target:
+      device_id: !secret media_device
+      entity_id: media_player.spotify_john_dahlberg
+  - service: media_player.select_source
+    data:
+      source: raspotify (raspberrypi)
+    target:
+      device_id: !secret media_device
+      entity_id: media_player.spotify_john_dahlberg
+  - service: media_player.volume_set
+    target:
+      device_id: !secret media_device
+      entity_id: media_player.spotify_john_dahlberg
+    data:
+      volume_level: 0.85
+  - service: media_player.media_play
+    target:
+      device_id: !secret media_device
+      entity_id: media_player.spotify_john_dahlberg
+
+wake_up:
+  sequence:
+  - service: homeassistant.turn_on
+    target:
+      entity_id:
+        - group.hall
+        - light.top_of_bookshelf
+        - light.middle_of_bookshelf
+        - light.beneath_bookshelf
+        - light.right_of_tv
+        - light.left_of_tv
+        - light.livingroom_ceiling
+    data:
+      brightness: 150
+      transition: "{{ transition if transition else 0 }}"
+  - service: homeassistant.turn_on
+    target:
+      entity_id: light.hall_ceiling
+    data:
+      brightness: 150
+      transition: "{{ transition if transition else 0 }}"
+  - service: scene.turn_on
+    target:
+      entity_id: scene.hue_tropical_twilight
+    data:
+      transition: "{{ transition if transition else 0 }}"
+
+turn_on_lights:
+  sequence:
+  - service: homeassistant.turn_on
+    target:
+      entity_id: group.livingroom
+    data:
+      brightness: 255
+      transition: "{{ transition if transition else 0 }}"
+  - service: homeassistant.turn_on
+    target:
+      entity_id: light.hall_ceiling
+    data:
+      brightness: 255
+      transition: "{{ transition if transition else 0 }}"
+  - service: scene.turn_on
+    target:
+      entity_id: scene.hue_savanna
+    data:
+      transition: "{{ transition if transition else 0 }}"
+
+turn_on_lights_evening:
+  sequence:
+  - service: homeassistant.turn_on
+    target:
+      entity_id: group.livingroom
+    data:
+      brightness: 255
+  - service: homeassistant.turn_on
+    target:
+      entity_id: light.hall_ceiling
+  - service: scene.turn_on
+    target:
+      entity_id: scene.hue_savanna
+
+turn_on_lights_night:
+  sequence:
+  - service: homeassistant.turn_on
+    target:
+      entity_id: group.livingroom
+    data:
+      brightness: 100
+      transition: 10
+  - service: scene.turn_on
+    target:
+      entity_id: scene.hue_cactus_in_sunset
+  - service: homeassistant.turn_off
+    target:
+      entity_id: group.hall
+    data:
+      brightness: 10
+      transition: 10
+  - service: homeassistant.turn_off
+    target:
+      entity_id: light.led_list
+  - service: homeassistant.turn_on
+    target:
+      entity_id: light.led_list
+  - service: homeassistant.turn_off
+    target:
+      entity_id: light.livingroom_ceiling
+
+restart_raspotify:
+  sequence:
+    service: shell_command.restart_raspotify
+
+hall_motion_sensor_on:
+  sequence:
+  - service: homeassistant.turn_on
+    target:
+      entity_id: light.hall_ceiling
+    data:
+      transition: "{{ transition if transition else 0 }}"
+  - delay: 5
+  - service: homeassistant.turn_off
+    target:
+      entity_id: light.hall_ceiling

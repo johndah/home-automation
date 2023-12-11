@@ -1,0 +1,191 @@
+homeassistant:
+  elevation: 0 # Impacts weather/sunrise data (altitude above sea level in meters)
+  unit_system: metric
+  time_zone: Europe/Stockholm
+  
+discovery:
+
+group: !include groups.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml
+
+system_health:
+
+# Configure a default setup of Home Assistant (frontend, api, etc)
+default_config:
+
+logger:
+  default: critical
+  logs:
+    homeassistant.components: warn
+
+# Uncomment this if you are using SSL/TLS, running in Docker container, etc.
+# http:
+#   base_url: example.duckdns.org:8123
+
+input_datetime:
+  morning_time:
+    name: Time before morning automation
+    has_time: true
+    initial: '06:00'
+  evening_time:
+    name: Time for evening automation
+    has_time: true
+    initial: '18:00'
+  night_time:
+    name: Time for night automation
+    has_time: true
+    initial: '22:00'
+
+
+sensor:
+  - platform: template
+    sensors:
+      john_wifi:
+        value_template: >-
+          {% if states('sensor.sm_g991b_wifi_connection') == !secret wifi_ssid %}
+            home
+          {% else %}
+            not_home
+          {% endif %}
+        friendly_name: 'John Wifi Connection'
+
+mqtt:
+  sensor:
+    - name: 'bluetooth'
+      state_topic: !secret bluetooth_topic1
+      value_template: "{{ value_json.confidence }}"
+      unit_of_measurement: "%"
+    - name: 'bluetooth'
+      state_topic: !secret bluetooth_topic2
+      value_template: "{{ value_json.confidence }}"
+      unit_of_measurement: "%"
+
+panel_iframe:
+  configurator:
+    title: Configurator
+    icon: mdi:wrench
+    url: !secret host
+
+input_boolean:
+  sleep_mode:
+    name: Sleep Mode
+    initial: off
+
+shell_command:
+  led_list: python ./led.py {{ states('input_number.led_list_h') | int }} {{ states('input_number.led_list_s') | int }} {{ states('input_number.led_list_brightness') | int }}
+  update_xiaomi_miot: |-
+    wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | ARCHIVE_TAG=latest bash -
+
+
+input_number:
+  wake_up_transition_time:
+    name: Minutes before alarm to transition lights
+    initial: 10
+    min: 0
+    max: 30
+    step: 1
+  open_covers_delay:
+    name: Minutes delaying opening covers after alarm
+    initial: 22
+    min: 0
+    max: 30
+    step: 1
+  led_list:
+    name: LED List
+    initial: 255
+    min: 0
+    max: 255
+    step: 1
+  led_list_brightness:
+    name: LED List brightness
+    initial: 255
+    min: 0
+    max: 255
+    step: 1
+  led_list_h:
+    name: LED List hue
+    initial: 0
+    min: 0
+    max: 360
+    step: 1
+  led_list_s:
+    name: LED List saturation
+    initial: 100
+    min: 0
+    max: 100
+    step: 1
+
+light:
+  - platform: template
+    lights:
+      led_list:
+        friendly_name: LED List
+        level_template: "{{ states('input_number.led_list_brightness') | int }}"
+        value_template: "{{ states('input_number.led_list_brightness') | int > 0 }}"
+        color_template: "({{ states('input_number.led_list_h') | int}}, {{states('input_number.led_list_s') | int }})"
+        turn_on:
+          - service: input_number.set_value
+            data:
+              entity_id: input_number.led_list_brightness
+              value: 255
+          - service:
+              shell_command.led_list
+        turn_off:
+          - service: input_number.set_value
+            data:
+              entity_id: input_number.led_list_brightness
+              value: 0
+          - service: shell_command.led_list
+        set_level:
+          - service: input_number.set_value
+            data:
+              entity_id: input_number.led_list_brightness
+              value: "{{ brightness }}"
+          - service: shell_command.led_list
+        set_color:
+          - service: input_number.set_value
+            data:
+              entity_id: input_number.led_list_h
+              value: "{{ h }}"
+          - service: input_number.set_value
+            data:
+              entity_id: input_number.led_list_s
+              value: "{{ s }}"
+          - service: shell_command.led_list
+
+  - platform: limitlessled
+    bridges:
+      - host: !secret mi_lights_bridge_1_ip
+        groups:
+          - number: 1
+            name: Cactus
+            type: rgbww
+            fade: true
+          - number: 2
+            name: Sofa
+            type: rgbww
+            fade: true
+          - number: 3
+            name: Top of Bookshelf
+            type: rgbww
+            fade: true
+          - number: 4
+            name: Beneath Bookshelf
+            type: rgbww
+            fade: true
+
+      - host: !secret mi_lights_bridge_2_ip
+        groups:
+          - number: 1
+            name: Middle of Bookshelf
+            type: rgbww
+            fade: true
+          - number: 2
+            name: Hall Ceiling
+            type: rgbww
+            fade: true
+          - number: 3
+            name: Livingroom Ceiling
+            type: rgbww
+            fade: true

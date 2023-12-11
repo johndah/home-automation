@@ -1,0 +1,45 @@
+group:
+
+all_lights:
+  name: All Lights
+  entities:
+    - group.livingroom
+    - group.hall
+
+scripts:
+  name: Scripts
+  entities:
+    - script.pre_sleep
+    - script.sleep
+
+automations:
+  name: Automations
+  entities:
+    - automation.morning_mode
+    - automation.evening_mode
+    - automation.night_mode
+
+livingroom:
+  name: Livingroom
+  entities:
+    - light.livingroom_ceiling
+    - light.citrus_tree
+    - light.sofa
+    - light.left_of_tv
+    - light.right_of_tv
+    - light.top_of_bookshelf
+    - light.middle_of_bookshelf
+    - light.beneath_bookshelf
+    - light.cactus
+    - light.led_list
+    - light.top_led
+    - light.middle_led
+    - light.bottom_led
+
+hall:
+  name: Hall
+  icon: mdi:account-multiple
+  entities:
+    - light.closet
+    - light.hall_ceiling
+
