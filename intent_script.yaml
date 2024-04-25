@@ -1,0 +1,43 @@
+GetTemperature:
+  speech:    
+    text: It is {{ states('sensor.temperature') }} degrees outside
+
+ToggleLightState:
+  action:
+    - service: 'light.turn_{{ state }}'
+      data_template:
+        entity_id: 'light.{{ name | replace(" ", "_") }}'
+
+ToggleCovers:
+  action:
+    - service: 'script.{{ state }}_covers'
+
+SetLightMode:
+  action:
+    - service: 'script.turn_on_lights{{ mode }}_covers'
+
+RunSleep:
+    speech:
+      text: Activating sleep mode
+    action:
+      - service: script.sleep
+
+RunPreSleep:
+    speech:
+      text: Activating pre sleep mode
+    action:
+      - service: script.pre_sleep
+
+ToggleMusicStatus:
+  action:
+    - service: 'media_player.media_{{ change_status }}'
+      target:
+        device_id: !secret media_device
+        entity_id: media_player.spotify_john_dahlberg
+
+ChangeMusicVolume:
+  action:
+    - service: 'media_player.media_{{ change_status }}'
+      target:
+        device_id: !secret media_device
+        entity_id: media_player.spotify_john_dahlberg

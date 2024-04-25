@@ -3,11 +3,10 @@ homeassistant:
   unit_system: metric
   time_zone: Europe/Stockholm
   
-discovery:
-
 group: !include groups.yaml
 automation: !include automations.yaml
 script: !include scripts.yaml
+intent_script: !include intent_script.yaml
 
 system_health:
 
