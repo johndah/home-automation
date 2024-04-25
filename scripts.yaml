@@ -110,21 +110,21 @@ pre_sleep:
         - light.top_of_bookshelf
         - light.middle_of_bookshelf
         - light.beneath_bookshelf
-        - light.middle_led
         - light.top_led
+        - light.middle_led
+        - light.bottom_led
         - light.cactus
         - light.citrus_tree
-        - light.right_of_tv
-        - light.left_of_tv
         - light.sofa
         - light.livingroom_ceiling
   - service: light.turn_on
     target:
       entity_id:
         - light.led_list
-        - light.bottom_led
+        - light.left_of_tv
+        - light.right_of_tv
     data:
-      brightness: 10
+      brightness: 20
   - service: media_player.media_pause
     target:
       device_id: !secret media_device
@@ -226,10 +226,13 @@ turn_on_lights_night:
       transition: 10
   - service: homeassistant.turn_off
     target:
-      entity_id: light.led_list
-  - service: homeassistant.turn_on
+      entity_id: light.top_of_bookshelf
+  - service: homeassistant.turn_off
     target:
-      entity_id: light.led_list
+      entity_id: light.beneath_bookshelf
+  - service: homeassistant.turn_off
+    target:
+      entity_id: light.middle_of_bookshelf
   - service: homeassistant.turn_off
     target:
       entity_id: light.livingroom_ceiling
