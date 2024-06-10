@@ -4,22 +4,22 @@ open_covers_living_room:
   - service: cover.open_cover
     data:
       entity_id:
-        - cover.middle_blind
-        - cover.kitchen_blind
+        - cover.middle
+        - cover.kitchen
   - delay:
       seconds: >
-        {% if state_attr('cover.middle_blind','current_position') > 0 %} 2 {% else %} 4 {% endif %}
+        {% if state_attr('cover.middle','current_position') > 0 %} 2 {% else %} 4 {% endif %}
   - service: cover.open_cover
     target:
       entity_id:
-        - cover.left_blind
-        - cover.right_blind
+        - cover.left
+        - cover.right
 
 open_covers:
   sequence:
   - service: cover.open_cover
     target:
-      entity_id: cover.kitchen_blind
+      entity_id: cover.kitchen
   - service: script.open_covers_living_room
 
 close_covers:
@@ -27,19 +27,19 @@ close_covers:
   - service: cover.close_cover
     target:
       entity_id:
-        - cover.left_blind
-        - cover.middle_blind
-        - cover.right_blind
-        - cover.kitchen_blind
+        - cover.left
+        - cover.middle
+        - cover.right
+        - cover.kitchen
 
 shade_mode:
   sequence:
   - service: cover.set_cover_position
     target:
       entity_id:
-        - cover.left_blind
-        - cover.middle_blind
-        - cover.right_blind
+        - cover.left
+        - cover.middle
+        - cover.right
     data:
       position: 50
 
@@ -48,10 +48,10 @@ stop_covers:
   - service: cover.stop_cover
     target:
       entity_id:
-        - cover.left_blind
-        - cover.middle_blind
-        - cover.right_blind
-        - cover.kitchen_blind
+        - cover.left
+        - cover.middle
+        - cover.right
+        - cover.kitchen
 
 sleep:
   sequence:
