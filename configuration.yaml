@@ -37,26 +37,13 @@ input_datetime:
     has_time: true
     initial: '22:00'
 
-
-sensor:
-  - platform: template
-    sensors:
-      john_wifi:
-        value_template: >-
-          {% if states('sensor.sm_g991b_wifi_connection') == !secret wifi_ssid %}
-            home
-          {% else %}
-            not_home
-          {% endif %}
-        friendly_name: 'John Wifi Connection'
-
 mqtt:
   sensor:
-    - name: 'bluetooth'
+    - name: 'bluetooth1'
       state_topic: !secret bluetooth_topic1
       value_template: "{{ value_json.confidence }}"
       unit_of_measurement: "%"
-    - name: 'bluetooth'
+    - name: 'bluetooth2'
       state_topic: !secret bluetooth_topic2
       value_template: "{{ value_json.confidence }}"
       unit_of_measurement: "%"

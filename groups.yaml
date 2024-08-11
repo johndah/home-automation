@@ -1,5 +1,11 @@
 group:
 
+persons:
+  name: Persons
+  entities:
+    - person.john
+    - person.natie
+
 all_lights:
   name: All Lights
   entities:

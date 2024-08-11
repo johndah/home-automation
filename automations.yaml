@@ -5,7 +5,7 @@
   trigger:
     - platform: template
       value_template: >-
-        {% set alarm_time = states('sensor.sm_g991b_next_alarm') %}
+        {% set alarm_time = states('sensor.sm_s926b_next_alarm') %}
         {% if alarm_time not in  ['unavailable', 'none', 'unknown'] %} 
         {{ now() >= alarm_time | as_datetime | as_local - 
           timedelta(minutes=(states.input_number.wake_up_transition_time.state | int)) }}
@@ -31,9 +31,9 @@
   alias: 'Morning Mode'
   initial_state: true
   trigger:
-    platform: numeric_state
-    entity_id: sensor.bluetooth
-    above: 50
+    platform: state
+    entity_id: group.persons
+    to: "home"
   condition:
     - condition: time
       after: input_datetime.morning_time
@@ -86,9 +86,9 @@
     platform: time
     at: input_datetime.evening_time
   condition:
-    - condition: numeric_state
-      entity_id: sensor.bluetooth
-      above: 50
+    - condition: state
+      entity_id: group.persons
+      state: "home"
   action:
     - service: 
         script.turn_on_lights_evening
@@ -100,9 +100,9 @@
     - platform: time
       at: input_datetime.night_time
   condition:
-    - condition: numeric_state
-      entity_id: sensor.bluetooth
-      above: 50
+    - condition: state
+      entity_id: group.persons
+      state: "home"
     - condition: state
       entity_id: input_boolean.sleep_mode
       state: 'off'
@@ -165,9 +165,9 @@
     is_night: "{{ not ( is_daytime or is_evening ) }}"
     is_summer: "{{ is_state('sensor.season', 'summer') }}"
   trigger:
-    platform: numeric_state
-    entity_id: sensor.bluetooth
-    above: 50
+    platform: state
+    entity_id: group.persons
+    to: "home"
   condition:
     condition: state
     entity_id: input_boolean.sleep_mode
@@ -214,9 +214,9 @@
     is_daytime: "{{morning_timestamp <= current_timestamp < evening_timestamp }}"
     is_summer: "{{ is_state('sensor.season', 'summer') }}"
   trigger:
-    platform: numeric_state
-    entity_id: sensor.bluetooth
-    below: 50
+    platform: state
+    entity_id: group.persons
+    to: not_home
   action:
     - service: light.turn_off
       target:
