@@ -144,6 +144,10 @@
     - platform: state
       entity_id: light.closet
       to: 'on'
+  condition:
+      condition: state
+      entity_id: input_boolean.sleep_mode
+      state: 'off'
   action:
     - choose:
       - conditions: "{{ is_daytime or is_evening }}"
