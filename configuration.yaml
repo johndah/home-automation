@@ -56,7 +56,7 @@ input_boolean:
 shell_command:
   led_list: python ./led.py {{ states('input_number.led_list_h') | int }} {{ states('input_number.led_list_s') | int }} {{ states('input_number.led_list_brightness') | int }}
   update_xiaomi_miot: |-
-    wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | ARCHIVE_TAG=latest bash -
+    wget -O - https://get.hacs.vip | DOMAIN=xiaomi_miot bash -
 
 
 input_number:
