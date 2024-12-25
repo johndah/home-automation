@@ -1,26 +1,44 @@
-
-open_covers_living_room:
+morning_mode:
   sequence:
-  - service: cover.open_cover
-    data:
-      entity_id:
-        - cover.middle
-        - cover.kitchen
-  - delay:
-      seconds: >
-        {% if state_attr('cover.middle','current_position') > 0 %} 2 {% else %} 4 {% endif %}
-  - service: cover.open_cover
-    target:
-      entity_id:
-        - cover.left
-        - cover.right
+    - variables:
+        is_summer: "{{ is_state('sensor.season', 'summer') }}"
+        is_past_sunrise: "{{ is_state('sun.sun', 'above_horizon') }}"
+    - if:
+      - "{{ is_summer and is_past_sunrise }}"
+      then:
+        action: light.turn_off
+        target:
+          entity_id: all
+      else:
+        action: script.turn_on_lights_night
+        target:
+          entity_id: all
+    - delay:
+        minutes: "{{ (states.input_number.open_cover_delay.state | int) }}"
+    - service: script.open_covers 
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.sleep_mode
 
 open_covers:
   sequence:
   - service: cover.open_cover
+    data:
+      entity_id:
+        - cover.kitchen
+        - cover.middle
+  - delay:
+      seconds: 3
+  - service: cover.open_cover
     target:
-      entity_id: cover.kitchen
-  - service: script.open_covers_living_room
+      entity_id:
+        - cover.right
+  - delay:
+      seconds: 5
+  - service: cover.open_cover
+    target:
+      entity_id:
+        - cover.left
 
 close_covers:
   sequence:
@@ -221,9 +239,6 @@ turn_on_lights_night:
   - service: homeassistant.turn_off
     target:
       entity_id: group.hall
-    data:
-      brightness: 10
-      transition: 10
   - service: homeassistant.turn_off
     target:
       entity_id: light.top_of_bookshelf

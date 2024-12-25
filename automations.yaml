@@ -13,7 +13,7 @@
   condition:
     - condition: time
       after: input_datetime.morning_time
-      before: '13:00:00'
+      before: input_datetime.evening_time
     - condition: state
       entity_id: input_boolean.sleep_mode
       state: 'on'
@@ -22,42 +22,8 @@
       data:
         transition: "{{ (states.input_number.wake_up_transition_time.state | int) }}"
     - delay:
-        minutes: "{{ (states.input_number.open_covers_delay.state | int) }}"
-    - service: automation.trigger
-      target:
-        entity_id: automation.morning_mode
-
-- id: morning_mode
-  alias: 'Morning Mode'
-  initial_state: true
-  trigger:
-    platform: state
-    entity_id: group.persons
-    to: "home"
-  condition:
-    - condition: time
-      after: input_datetime.morning_time
-      before: '13:00:00'
-    - condition: state
-      entity_id: input_boolean.sleep_mode
-      state: 'on'
-  variables:
-    is_summer: "{{ is_state('sensor.season', 'summer') }}"
-  action:
-    - service: input_boolean.turn_off
-      target:
-        entity_id: input_boolean.sleep_mode
-    - service: script.open_covers
-    - choose:
-      - conditions: "{{ is_summer and is_state('sun.sun', 'above_horizon') }}"
-        sequence:
-          service: light.turn_off
-          target:
-            entity_id: all
-      default:
-        service: light.turn_on
-        target:
-          entity_id: all
+        minutes: "{{ (states.input_number.wake_up_transition_time.state | int) }}"
+    - service: script.morning_mode
 
 - id: reset_night_mode
   alias: 'Reset Night Mode'
@@ -156,8 +122,8 @@
           target:
             entity_id: light.hall_ceiling
 
-- id: occupancy_on
-  alias: 'Occupancy On'
+- id: coming_home
+  alias: 'Coming home'
   initial_state: true
   variables:
     current_timestamp: "{{ as_timestamp(now()) - as_timestamp(now().date()) }}"
@@ -190,25 +156,10 @@
     - choose:
       - conditions: "{{ is_summer and not is_night }}"
         sequence:
-          - service: script.open_covers_living_room
-    - service: media_player.turn_on
-      target:
-        entity_id: media_player.the_frame
-    - service: media_player.select_source
-      data:
-        source: raspotify (raspberrypi)
-      target:
-        device_id: !secret media_device
-        entity_id: media_player.spotify_john_dahlberg
-    - service: media_player.volume_set
-      target:
-        device_id: !secret media_device
-        entity_id: media_player.spotify_john_dahlberg
-      data:
-        volume_level: 1.0
+          - service: script.open_covers
 
-- id: occupancy_off
-  alias: 'Occupancy Off'
+- id: leaving_home
+  alias: 'Leaving Home'
   initial_state: true
   variables:
     current_timestamp: "{{ as_timestamp(now()) - as_timestamp(now().date()) }}"

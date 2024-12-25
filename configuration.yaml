@@ -48,12 +48,6 @@ mqtt:
       value_template: "{{ value_json.confidence }}"
       unit_of_measurement: "%"
 
-panel_iframe:
-  configurator:
-    title: Configurator
-    icon: mdi:wrench
-    url: !secret host
-
 input_boolean:
   sleep_mode:
     name: Sleep Mode
