@@ -39,12 +39,20 @@ input_datetime:
 
 mqtt:
   sensor:
-    - name: 'bluetooth1'
-      state_topic: !secret bluetooth_topic1
+    - name: 'john_phone_bluetooth'
+      state_topic: !secret john_phone_bluetooth_topic
       value_template: "{{ value_json.confidence }}"
       unit_of_measurement: "%"
-    - name: 'bluetooth2'
-      state_topic: !secret bluetooth_topic2
+    - name: 'john_smart_watch_bluetooth'
+      state_topic: !secret john_smart_watch_bluetooth_topic
+      value_template: "{{ value_json.confidence }}"
+      unit_of_measurement: "%"
+    - name: 'natie_phone_bluetooth'
+      state_topic: !secret natie_phone_bluetooth_topic
+      value_template: "{{ value_json.confidence }}"
+      unit_of_measurement: "%"
+    - name: 'natie_smart_watch_bluetooth'
+      state_topic: !secret natie_smart_watch_bluetooth_topic
       value_template: "{{ value_json.confidence }}"
       unit_of_measurement: "%"
 

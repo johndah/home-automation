@@ -183,3 +183,99 @@
       - conditions: "{{ is_summer and is_sunny and is_daytime }}"
         sequence:
           service: script.shade_mode
+
+- alias: John bluetooth phone presence
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.samsung_phone_bluetooth
+      above: 50
+  action:
+    - service: device_tracker.see
+      data:
+        dev_id: samsung_phone_bluetooth
+        location_name: home
+        source_type: bluetooth
+
+- alias: John bluetooth smart watch presence
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.john_smart_watch_bluetooth
+      above: 50
+  action:
+    - service: device_tracker.see
+      data:
+        dev_id: john_smart_watch_bluetooth
+        location_name: home
+        source_type: bluetooth
+
+- alias: Natie bluetooth phone presence
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.natie_phone_bluetooth
+      above: 50
+  action:
+    - service: device_tracker.see
+      data:
+        dev_id: natie_phone_bluetooth
+        location_name: home
+        source_type: bluetooth
+
+- alias: Natie bluetooth smart watch presence
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.natie_smart_watch_bluetooth
+      above: 50
+  action:
+    - service: device_tracker.see
+      data:
+        dev_id: natie_smart_watch_bluetooth
+        location_name: home
+        source_type: bluetooth
+
+- alias: John bluetooth phone away
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.samsung_phone_bluetooth
+      below: 50
+  action:
+    - service: device_tracker.see
+      data:
+        dev_id: samsung_phone_bluetooth
+        location_name: not_home
+        source_type: bluetooth
+
+- alias: John bluetooth smart watch away
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.john_smart_watch_bluetooth
+      below: 50
+  action:
+    - service: device_tracker.see
+      data:
+        dev_id: john_smart_watch_bluetooth
+        location_name: not_home
+        source_type: bluetooth
+
+- alias: Natie bluetooth phone away
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.natie_phone_bluetooth
+      below: 50
+  action:
+    - service: device_tracker.see
+      data:
+        dev_id: natie_phone_bluetooth
+        location_name: not_home
+        source_type: bluetooth
+
+- alias: Natie bluetooth smart watch away
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.natie_smart_watch_bluetooth
+      below: 50
+  action:
+    - service: device_tracker.see
+      data:
+        dev_id: natie_smart_watch_bluetooth
+        location_name: not_home
+        source_type: bluetooth
