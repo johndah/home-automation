@@ -31,6 +31,10 @@ input_datetime:
     name: Time for evening automation
     has_time: true
     initial: '18:00'
+  late_evening_time:
+    name: Time for late evening automation
+    has_time: true
+    initial: '20:00'
   night_time:
     name: Time for night automation
     has_time: true

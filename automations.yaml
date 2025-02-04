@@ -45,6 +45,20 @@
       target:
         entity_id: input_boolean.night_mode
 
+- id: late_evening_mode
+  alias: 'Late Evening Mode'
+  initial_state: true
+  trigger:
+    platform: time
+    at: input_datetime.late_evening_time
+  condition:
+    - condition: state
+      entity_id: group.persons
+      state: "home"
+  action:
+    - service: 
+        script.turn_on_lights_late_evening
+
 - id: evening_mode
   alias: 'Evening Mode'
   initial_state: true

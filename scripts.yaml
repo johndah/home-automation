@@ -225,6 +225,23 @@ turn_on_lights_evening:
     target:
       entity_id: scene.hue_savanna
 
+turn_on_lights_late_evening:
+  sequence:
+  - service: homeassistant.turn_on
+    target:
+      entity_id: group.livingroom
+    data:
+      brightness: 255
+  - service: scene.turn_on
+    target:
+      entity_id: scene.hue_savanna
+  - service: homeassistant.turn_off
+    target:
+      entity_id: group.hall
+  - service: homeassistant.turn_off
+    target:
+      entity_id: light.livingroom_ceiling
+
 turn_on_lights_night:
   sequence:
   - service: homeassistant.turn_on
