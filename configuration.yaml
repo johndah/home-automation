@@ -66,9 +66,7 @@ input_boolean:
 
 shell_command:
   led_list: python ./led.py {{ states('input_number.led_list_h') | int }} {{ states('input_number.led_list_s') | int }} {{ states('input_number.led_list_brightness') | int }}
-  update_xiaomi_miot: |-
-    wget -O - https://get.hacs.vip | DOMAIN=xiaomi_miot bash -
-
+  update_energy_usage: './fetch_energy_usage.sh'
 
 input_number:
   wake_up_transition_time:
